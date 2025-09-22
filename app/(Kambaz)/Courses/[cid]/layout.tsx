@@ -3,11 +3,12 @@ import CourseNavigation from "./Navigation";
 
 interface CoursesLayoutProps {
   children: ReactNode;
-  params: { cid: string }; // plain object
+  params: { cid: string }; // always plain object
 }
 
 export default function CoursesLayout({ children, params }: CoursesLayoutProps) {
   const { cid } = params;
+
   return (
     <div id="wd-courses">
       <h2>Courses {cid}</h2>
@@ -15,7 +16,7 @@ export default function CoursesLayout({ children, params }: CoursesLayoutProps) 
       <table>
         <tbody>
           <tr>
-            <td valign="top" width={200}>
+            <td valign="top" width="200">
               <CourseNavigation />
             </td>
             <td valign="top" width="100%">
