@@ -1,6 +1,12 @@
 export default function Modules() {
   return (
     <div>
+      <div style={{ marginBottom: "10px" }}>
+        <button>Collapse All</button>
+        <button>View Progress</button>
+        <button>Publish All</button>
+        <button>+ Module</button>
+      </div>
       {/* Implement Collapse All button, View Progress button, etc. */}
       <ul id="wd-modules">
         <li className="wd-module">

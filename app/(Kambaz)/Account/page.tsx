@@ -1,5 +1,9 @@
-import { redirect } from "next/navigation";
+import { redirect } from "next/dist/client/components/navigation";
 
-export default function Kambaz() {
-  redirect("/Account/Signin");
+
+export default function AccountPage() {
+ redirect("/Account/Signin");
+
+    return null;
 }
+
