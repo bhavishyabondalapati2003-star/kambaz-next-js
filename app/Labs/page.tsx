@@ -6,7 +6,7 @@ export default function Labs() {
       <div className="mb-6">
         <h2>Student Info</h2>
         <p><strong>Name:</strong> Bhavishya</p>
-        <p><strong>Section:</strong> CS5610 18616</p>
+        <p><strong>Section:</strong> CS5610 18616 SECTION-4 </p>
         <p>
           <strong>GitHub:</strong>{" "}
           <a
