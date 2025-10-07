@@ -87,7 +87,7 @@ export default function BootstrapForms() {
                <FormCheck type="radio" label="First radio" name="formHorizontalRadios" defaultChecked />
                <FormCheck type="radio" label="Second radio" name="formHorizontalRadios" />
                <FormCheck type="radio" label="Third radio" name="formHorizontalRadios" />
-               <FormCheck type="radio" label="Remember me" name="formHorizontalRadios" />
+               <FormCheck type="checkbox" label="Remember me" name="formHorizontalRadios" />
             </Col>
          </Row>
       </fieldset>
