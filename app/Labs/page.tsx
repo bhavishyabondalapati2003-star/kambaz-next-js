@@ -1,8 +1,11 @@
 import Link from "next/link";
 
+
 export default function Labs() {
   return (
     <div id="wd-labs" className="p-4">
+      
+    
       <div className="mb-6">
         <h2>Student Info</h2>
         <p><strong>Name:</strong> Bhavishya</p>

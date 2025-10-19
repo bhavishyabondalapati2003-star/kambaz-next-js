@@ -1,80 +1,43 @@
-"use client";
-
-import { useState } from "react";
-import { FaComputer } from "react-icons/fa6";
-import { ListGroup, ListGroupItem } from "react-bootstrap";
+"use client"
+import { ListGroup, ListGroupItem } from "react-bootstrap"; 
+import { AiOutlineDashboard } from "react-icons/ai";
+import { IoCalendarOutline } from "react-icons/io5";
+import { LiaBookSolid, LiaCogSolid } from "react-icons/lia";
+import { FaInbox, FaRegCircleUser } from "react-icons/fa6";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { MdAccountCircle, MdInbox } from "react-icons/md";
-import { IoBookSharp } from "react-icons/io5";
-import { RiDashboard3Line } from "react-icons/ri";
-import { SlCalender } from "react-icons/sl";
-
 export default function KambazNavigation() {
-  const [activeId, setActiveId] = useState("wd-account-link");
-
+  const pathname = usePathname();
   const links = [
-    { href: "/Account", id: "wd-account-link", label: "Account", icon: <MdAccountCircle /> },
-    { href: "/Dashboard", id: "wd-dashboard-link", label: "Dashboard", icon: <RiDashboard3Line /> },
-    { href: "/Dashboard", id: "wd-courses-link", label: "Courses", icon: <IoBookSharp /> },
-    { href: "/Calendar", id: "wd-calendar-link", label: "Calendar", icon: <SlCalender /> },
-    { href: "/Inbox", id: "wd-inbox-link", label: "Inbox", icon: <MdInbox /> },
-    { href: "/Labs", id: "wd-labs-link", label: "Labs", icon: <FaComputer /> },
+    { label: "Dashboard", path: "/Dashboard", icon: AiOutlineDashboard },
+    { label: "Courses",   path: "/Dashboard", icon: LiaBookSolid },
+    { label: "Calendar",  path: "/Calendar",  icon: IoCalendarOutline },
+    { label: "Inbox",     path: "/Inbox",     icon: FaInbox },
+    { label: "Labs",      path: "/Labs",             icon: LiaCogSolid },
   ];
-
   return (
-    <ListGroup
-      className="rounded-0 position-fixed bottom-0 top-0 d-none d-md-block bg-black z-2"
-      style={{ width: 120 }}
-     
-
-      id="wd-kambaz-navigation">
-      <ListGroupItem className="bg-black border-0 text-center" as="a" target="_blank"
-        href="https://www.northeastern.edu/" id="wd-neu-link">
-        <img src="/images/NEU.jpg" width="75px" alt="Northeastern University" />
+    <ListGroup id="wd-kambaz-navigation" style={{width: 120}}
+         className="rounded-0 position-fixed bottom-0 top-0 d-none d-md-block bg-black z-2">
+      <ListGroupItem id="wd-neu-link" target="_blank" href="https://www.northeastern.edu/"
+        action className="bg-black border-0 text-center">
+        <img src="/images/NEU.jpg" width="75px" /></ListGroupItem>
+      <ListGroupItem as={Link} href="/Account"
+        className={`text-center border-0 bg-black
+            ${pathname.includes("Account") ? "bg-white text-danger" : "bg-black text-white"}`}>
+        <FaRegCircleUser
+          className={`fs-1 ${pathname.includes("Account") ? "text-danger" : "text-white"}`} />
+        <br />
+        Account
       </ListGroupItem>
-
-      {links.map((link) => {
-        const isActive = activeId === link.id;
-        const isAccount = link.id === "wd-account-link";
-
-        const bgColor = isActive ? "bg-white" : "bg-black";
-        
-        // Text is white when inactive, red when active.
-        const linkTextColor = isActive ? "text-danger" : "text-white";
-
-        // Icon color logic:
-        let iconColor;
-        if (isAccount) {
-          // Account icon: red when active, white when inactive.
-          iconColor = isActive ? "text-danger" : "text-white";
-        } else {
-          // All other icons: always red (based on the previous request's logic).
-          iconColor = "text-danger";
-        }
-
-        return (
-          <ListGroupItem
-            key={link.id}
-            className={`border-0 text-center ${bgColor}`}
-            onClick={() => setActiveId(link.id)}
-          >
-            <Link
-              href={link.href}
-              id={link.id}
-              className={`text-decoration-none d-block`}
-            >
-              {/* Apply icon color */}
-              <div className={`fs-1 ${iconColor}`}>
-                  {link.icon}
-              </div>
-              {/* Apply text color */}
-              <div className={linkTextColor}>
-                {link.label}
-              </div>
-            </Link>
-          </ListGroupItem>
-        );
-      })}
+      {links.map((link) => (
+        <ListGroupItem key={link.path} as={Link} href={link.path}
+          className={`bg-black text-center border-0
+              ${pathname.includes(link.label) ? "text-danger bg-white" : "text-white bg-black"}`}>
+          {link.icon({ className: "fs-1 text-danger"})}
+          <br />
+          {link.label}
+        </ListGroupItem>
+      ))}
     </ListGroup>
-  );
-}
+);}
+

@@ -7,44 +7,51 @@ import { useState, useEffect } from "react";
 export default function CourseNavigation() {
   const pathname = usePathname();
 
+  // Dynamically extract the course ID from the path (e.g., /Courses/RS101/Home)
+  const segments = pathname.split("/");
+  const cid = segments[2] || "1234";
+
+  // Replace hardcoded list with a data-driven array
   const links = [
-    { href: "/Courses/1234/Home", id: "wd-course-home-link", label: "Home" },
-    { href: "/Courses/1234/Modules", id: "wd-course-modules-link", label: "Modules" },
-    { href: "/Courses/1234/Piazza", id: "wd-course-piazza-link", label: "Piazza" },
-    { href: "/Courses/1234/Zoom", id: "wd-course-zoom-link", label: "Zoom" },
-    { href: "/Courses/1234/Assignments", id: "wd-course-assignments-link", label: "Assignments" },
-    { href: "/Courses/1234/Quizzes", id: "wd-course-quizzes-link", label: "Quizzes" },
-    { href: "/Courses/1234/Grades", id: "wd-course-grades-link", label: "Grades" },
-    { href: "/Courses/1234/People", id: "wd-course-people-link", label: "People" },
+    "Home",
+    "Modules",
+    "Piazza",
+    "Zoom",
+    "Assignments",
+    "Quizzes",
+    "Grades",
+    "People",
   ];
 
   const [activeId, setActiveId] = useState("");
 
   useEffect(() => {
-    // If pathname is the course root or invalid, default to Home
-    const match = links.find(link => link.href === pathname);
-    if (!match) {
-      setActiveId("wd-course-home-link");
-    } else {
-      setActiveId(match.id);
-    }
+    // Determine which link is active based on the current pathname
+    let match = links.find((label) =>
+  pathname.toLowerCase().includes(`/${label.toLowerCase()}`)
+);
+if (!match) match = "Home";
+setActiveId(`wd-course-${match.toLowerCase()}-link`);
+
   }, [pathname]);
 
   return (
     <div id="wd-courses-navigation" className="wd list-group fs-5 rounded-0">
-      {links.map(link => {
-        const isActive = activeId === link.id;
+      {links.map((label) => {
+        const id = `wd-course-${label.toLowerCase()}-link`;
+        const href = `/Courses/${cid}/${label}`;
+        const isActive = activeId === id;
         const textClass = isActive ? "active text-black" : "text-danger";
 
         return (
           <Link
-            key={link.id}
-            href={link.href}
-            id={link.id}
+            key={id}
+            href={href}
+            id={id}
             className={`list-group-item border-0 ${textClass}`}
-            onClick={() => setActiveId(link.id)}
+            onClick={() => setActiveId(id)}
           >
-            {link.label}
+            {label}
           </Link>
         );
       })}

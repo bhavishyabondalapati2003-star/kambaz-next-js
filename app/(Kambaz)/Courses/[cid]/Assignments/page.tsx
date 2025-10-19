@@ -1,8 +1,9 @@
-'use client';
-import { use } from "react";
+"use client";
 
+import { use } from "react";
 import Link from "next/link";
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import {
   FaSearch,
   FaPlus,
@@ -13,7 +14,7 @@ import {
   FaCalendarAlt,
   FaStar,
 } from "react-icons/fa";
-import { MdOutlineAssignment } from "react-icons/md"; // <-- assignment icon from friend
+import { MdOutlineAssignment } from "react-icons/md";
 import {
   InputGroup,
   FormControl,
@@ -22,22 +23,9 @@ import {
   Row,
   Col,
 } from "react-bootstrap";
+import * as db from "../../../Database"; // ✅ import the real assignments DB
 
-interface AssignmentsProps {
-  params: Promise<{ cid: string }>;
-}
-
-const dummyAssignments = [
-  { id: 123, title: "A1", available: "May 6 at 12:00am", due: "May 13 at 11:59pm", points: 100 },
-  { id: 124, title: "A2", available: "May 13 at 12:00am", due: "May 20 at 11:59pm", points: 100 },
-  { id: 125, title: "A3", available: "May 20 at 12:00am", due: "May 27 at 11:59pm", points: 100 },
-  { id: 126, title: "A4", available: "May 27 at 12:00am", due: "Jun 3 at 11:59pm", points: 100 },
-  { id: 127, title: "A5", available: "Jun 3 at 12:00am", due: "Jun 10 at 11:59pm", points: 100 },
-  { id: 128, title: "A6", available: "Jun 10 at 12:00am", due: "Jun 17 at 11:59pm", points: 100 },
-  { id: 129, title: "A7", available: "Jun 17 at 12:00am", due: "Jun 24 at 11:59pm", points: 100 },
-  { id: 130, title: "A8", available: "Jun 24 at 12:00am", due: "Jul 1 at 11:59pm", points: 100 },
-];
-
+// ✅ keep the GripDots component identical
 function GripDots() {
   return (
     <div
@@ -72,16 +60,24 @@ function GripDots() {
   );
 }
 
-export default function Assignments({ params }: AssignmentsProps) {
-  const { cid } = use(params); // unwrap the promise using React.use()
+// ✅ Use real data instead of dummyAssignments
+export default function Assignments() {
+  const { cid } = useParams();
   const [search, setSearch] = useState("");
 
-  const filtered = dummyAssignments.filter((a) =>
+  // Load all assignments from the JSON DB
+  const assignments = db.assignments.filter(
+    (a: any) => a.course === cid
+  );
+
+  // Filter by search term
+  const filtered = assignments.filter((a: any) =>
     a.title.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="p-4 bg-light">
+    
+    <div className="p-4" style={{ backgroundColor: "white" }}>
       {/* 🔍 Search and Buttons */}
       <Row className="align-items-center mb-3">
         <Col md={6}>
@@ -107,26 +103,30 @@ export default function Assignments({ params }: AssignmentsProps) {
       </Row>
 
       {/* 📂 Header Section */}
-      <div className="d-flex align-items-center justify-content-between border px-3 py-2 bg-white">
-        <div className="d-flex align-items-center fw-semibold">
-          <GripDots />
-          <FaAngleDown className="me-2" />
-          ASSIGNMENTS
-        </div>
-        <div className="d-flex align-items-center">
-          <span className="border rounded-pill px-3 py-1 small text-muted me-3 bg-light">
-            40% of Total
-          </span>
-          <FaPlus className="text-secondary me-3" />
-          <FaEllipsisV className="text-secondary" />
-        </div>
-      </div>
+<div
+  className="d-flex align-items-center justify-content-between border px-3 py-2"
+  style={{ backgroundColor: "#f5f6f7" }}
+>
+  <div className="d-flex align-items-center fw-semibold">
+    <GripDots />
+    <FaAngleDown className="me-2" />
+    ASSIGNMENTS
+  </div>
+  <div className="d-flex align-items-center">
+    <span className="border rounded-pill px-3 py-1 small text-muted me-3 bg-light">
+      40% of Total
+    </span>
+    <FaPlus className="text-secondary me-3" />
+    <FaEllipsisV className="text-secondary" />
+  </div>
+</div>
+
 
       {/* 📋 Assignment List */}
       <ListGroup className="border border-top-0">
-        {filtered.map(({ id, title, available, due, points }) => (
+        {filtered.map(({ _id, title }: any) => (
           <ListGroup.Item
-            key={id}
+            key={_id}
             className="d-flex justify-content-between align-items-center ps-3 pe-2 py-3 rounded-0 bg-white"
             style={{
               borderLeft: "4px solid green",
@@ -138,24 +138,24 @@ export default function Assignments({ params }: AssignmentsProps) {
             {/* Left Section */}
             <div className="d-flex align-items-start w-100">
               <GripDots />
-              {/* <-- Friend's assignment icon */}
               <MdOutlineAssignment className="me-3 fs-4 text-success" />
               <div className="flex-grow-1">
                 <Link
-                  href={`/Courses/${cid}/Assignments/${id}`}
+                  href={`/Courses/${cid}/Assignments/${_id}`}
                   className="fw-bold text-decoration-none text-dark d-block"
                 >
                   {title}
                 </Link>
 
+                {/* keep the same subtext and icons */}
                 <div className="text-muted small mt-1">
                   Multiple Modules &nbsp;|&nbsp;
                   <FaClock className="me-1 text-secondary" />
-                  <strong>Not available until</strong> {available} &nbsp;|&nbsp;
+                  <strong>Not available until</strong> May 6 at 12:00am &nbsp;|&nbsp;
                   <FaCalendarAlt className="me-1 text-secondary" />
-                  <strong>Due</strong> {due} &nbsp;|&nbsp;
+                  <strong>Due</strong> May 13 at 11:59pm &nbsp;|&nbsp;
                   <FaStar className="me-1 text-secondary" />
-                  {points} pts
+                  100 pts
                 </div>
               </div>
             </div>
