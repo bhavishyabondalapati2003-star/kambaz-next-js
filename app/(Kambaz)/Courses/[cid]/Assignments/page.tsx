@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { use } from "react";
@@ -76,7 +77,6 @@ export default function Assignments() {
   );
 
   return (
-    
     <div className="p-4" style={{ backgroundColor: "white" }}>
       {/* 🔍 Search and Buttons */}
       <Row className="align-items-center mb-3">
@@ -103,24 +103,23 @@ export default function Assignments() {
       </Row>
 
       {/* 📂 Header Section */}
-<div
-  className="d-flex align-items-center justify-content-between border px-3 py-2"
-  style={{ backgroundColor: "#f5f6f7" }}
->
-  <div className="d-flex align-items-center fw-semibold">
-    <GripDots />
-    <FaAngleDown className="me-2" />
-    ASSIGNMENTS
-  </div>
-  <div className="d-flex align-items-center">
-    <span className="border rounded-pill px-3 py-1 small text-muted me-3 bg-light">
-      40% of Total
-    </span>
-    <FaPlus className="text-secondary me-3" />
-    <FaEllipsisV className="text-secondary" />
-  </div>
-</div>
-
+      <div
+        className="d-flex align-items-center justify-content-between border px-3 py-2"
+        style={{ backgroundColor: "#f5f6f7" }}
+      >
+        <div className="d-flex align-items-center fw-semibold">
+          <GripDots />
+          <FaAngleDown className="me-2" />
+          ASSIGNMENTS
+        </div>
+        <div className="d-flex align-items-center">
+          <span className="border rounded-pill px-3 py-1 small text-muted me-3 bg-light">
+            40% of Total
+          </span>
+          <FaPlus className="text-secondary me-3" />
+          <FaEllipsisV className="text-secondary" />
+        </div>
+      </div>
 
       {/* 📋 Assignment List */}
       <ListGroup className="border border-top-0">

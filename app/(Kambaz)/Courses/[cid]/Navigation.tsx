@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import Link from "next/link";
@@ -28,12 +29,11 @@ export default function CourseNavigation() {
   useEffect(() => {
     // Determine which link is active based on the current pathname
     let match = links.find((label) =>
-  pathname.toLowerCase().includes(`/${label.toLowerCase()}`)
-);
-if (!match) match = "Home";
-setActiveId(`wd-course-${match.toLowerCase()}-link`);
-
-  }, [pathname]);
+      pathname.toLowerCase().includes(`/${label.toLowerCase()}`)
+    );
+    if (!match) match = "Home";
+    setActiveId(`wd-course-${match.toLowerCase()}-link`);
+  }, [pathname, links]); // ✅ Added `links`
 
   return (
     <div id="wd-courses-navigation" className="wd list-group fs-5 rounded-0">

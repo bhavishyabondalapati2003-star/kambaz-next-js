@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Table } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
 import { useParams } from "next/navigation";
 import * as db from "../../../../Database";
-
 
 export default function PeopleTable() {
   const { cid } = useParams(); // e.g. RS101
@@ -44,9 +44,11 @@ export default function PeopleTable() {
               <td className="wd-section">{user.section}</td>
               <td className="wd-role">{user.role}</td>
               <td className="wd-last-activity">
-  {new Date(user.lastActivity).toISOString().replace("T", " ").split(".")[0]}
-</td>
-
+                {new Date(user.lastActivity)
+                  .toISOString()
+                  .replace("T", " ")
+                  .split(".")[0]}
+              </td>
               <td className="wd-total-activity">{user.totalActivity}</td>
             </tr>
           ))}
