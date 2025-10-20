@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { useParams } from "next/navigation";
@@ -11,12 +11,12 @@ export default function AssignmentEditor() {
 
   // Get assignment data dynamically
   const assignment = db.assignments.find(
-    (a: any) => a._id === aid && a.course === cid
+    (a: any) => a._id === aid && a.course === cid  // eslint-disable-line @typescript-eslint/no-explicit-any
   );
 
   const title = assignment?.title || "A1";
   const description =
-    assignment?.description ||
+    assignment?.description || 
     `The assignment is available online.
 
 Submit a link to the landing page of your Web application running on Netlify.
@@ -147,8 +147,8 @@ The Kambaz application should include a link to navigate back to the landing pag
                 </Col>
                 <Col md={6}>
                   <Form.Group className="mb-3">
-                    <Form.Label className="fw-semibold">Until</Form.Label>
-                    <Form.Control type="datetime-local" />
+                    <Form.Label className="fw-semibold" >Until</Form.Label>
+                    <Form.Control type="datetime-local" defaultValue={due}/>
                   </Form.Group>
                 </Col>
               </Row>
