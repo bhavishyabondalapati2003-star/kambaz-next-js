@@ -20,14 +20,14 @@ export default function Dashboard() {
         <Row xs={1} sm={2} md={3} lg={4} className="g-4 my-4">
           {courses.map((course) => (
             <Col
-              key={course._id || course.id}
+              key={course._id || course._id}
               className="wd-dashboard-course d-flex justify-content-center"
               style={{ width: "300px" }}
             >
               <Card className="h-100">
                 
                 <Link
-                  href={`/Courses/${course._id || course.id}/Home`}
+                  href={`/Courses/${course._id || course._id}/Home`}
                   className="wd-dashboard-course-link text-decoration-none text-dark"
                 >
                   <CardImg
