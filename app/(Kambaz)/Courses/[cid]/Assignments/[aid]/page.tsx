@@ -48,7 +48,7 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Points */}
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={2} className="fw-semibold">
+          <Form.Label column sm={3} className="fw-semibold">
             Points
           </Form.Label>
           <Col sm={10}>
@@ -58,7 +58,7 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Assignment Group */}
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={2} className="fw-semibold">
+          <Form.Label column sm={4} className="fw-semibold">
             Assignment Group
           </Form.Label>
           <Col sm={10}>
@@ -73,7 +73,7 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Display Grade As */}
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={2} className="fw-semibold">
+          <Form.Label column sm={3} className="fw-semibold">
             Display Grade as
           </Form.Label>
           <Col sm={10}>
@@ -88,7 +88,7 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Submission Type */}
         <Form.Group as={Row} className="mb-4">
-          <Form.Label column sm={2} className="fw-semibold">
+          <Form.Label column sm={4} className="fw-semibold">
             Submission Type
           </Form.Label>
           <Col sm={10}>
@@ -115,7 +115,7 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Assign Section */}
         <Form.Group as={Row} className="mb-3">
-          <Form.Label column sm={2} className="fw-semibold">
+          <Form.Label column sm={3} className="fw-semibold">
             Assign
           </Form.Label>
           <Col sm={10}>
