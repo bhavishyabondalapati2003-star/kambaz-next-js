@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useParams } from "next/navigation";
@@ -9,14 +8,14 @@ import * as db from "../../../../Database";
 export default function AssignmentEditor() {
   const { cid, aid } = useParams();
 
-  // Get assignment data dynamically
+  // Find assignment
   const assignment = db.assignments.find(
-    (a: any) => a._id === aid && a.course === cid  // eslint-disable-line @typescript-eslint/no-explicit-any
+    (a: any) => a._id === aid && a.course === cid
   );
 
   const title = assignment?.title || "A1";
   const description =
-    assignment?.description || 
+    assignment?.description ||
     `The assignment is available online.
 
 Submit a link to the landing page of your Web application running on Netlify.
@@ -28,6 +27,7 @@ The landing page should include the following:
 • Links to all relevant source code repositories
 
 The Kambaz application should include a link to navigate back to the landing page.`;
+
   const points = assignment?.points || 100;
   const due = assignment?.due || "2024-05-13T23:59";
   const available = assignment?.available || "2024-05-06T00:00";
@@ -37,18 +37,19 @@ The Kambaz application should include a link to navigate back to the landing pag
       <Form>
         {/* Assignment Name */}
         <Form.Group className="mb-3">
-          <Form.Label className="fw-semibold">Assignment Name</Form.Label>
+          <Form.Label className="fw-semibold text-start">Assignment Name</Form.Label>
           <Form.Control defaultValue={title} />
         </Form.Group>
 
         {/* Description */}
         <Form.Group className="mb-4">
+          <Form.Label className="fw-semibold text-start"></Form.Label>
           <Form.Control as="textarea" rows={8} defaultValue={description} />
         </Form.Group>
 
         {/* Points */}
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={3} className="fw-semibold">
+          <Form.Label column sm={3} className="fw-semibold text-start">
             Points
           </Form.Label>
           <Col sm={10}>
@@ -58,7 +59,7 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Assignment Group */}
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={4} className="fw-semibold">
+          <Form.Label column sm={4} className="fw-semibold text-start">
             Assignment Group
           </Form.Label>
           <Col sm={10}>
@@ -73,8 +74,8 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Display Grade As */}
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={3} className="fw-semibold">
-            Display Grade as
+          <Form.Label column sm={3} className="fw-semibold text-start">
+            Display Grade As
           </Form.Label>
           <Col sm={10}>
             <Form.Select defaultValue="Percentage">
@@ -88,12 +89,11 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Submission Type */}
         <Form.Group as={Row} className="mb-4">
-          <Form.Label column sm={4} className="fw-semibold">
+          <Form.Label column sm={4} className="fw-semibold text-start">
             Submission Type
           </Form.Label>
           <Col sm={10}>
             <Card className="p-3">
-              {/* Dropdown only */}
               <Form.Group className="mb-3">
                 <Form.Select defaultValue="Online">
                   <option>Online</option>
@@ -101,8 +101,6 @@ The Kambaz application should include a link to navigate back to the landing pag
                   <option>No Submission</option>
                 </Form.Select>
               </Form.Group>
-
-              {/* Always show these options like Canvas */}
               <div className="fw-semibold mb-2">Online Entry Options</div>
               <Form.Check type="checkbox" label="Text Entry" />
               <Form.Check type="checkbox" label="Website URL" defaultChecked />
@@ -115,12 +113,11 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Assign Section */}
         <Form.Group as={Row} className="mb-3">
-          <Form.Label column sm={3} className="fw-semibold">
+          <Form.Label column sm={3} className="fw-semibold text-start">
             Assign
           </Form.Label>
           <Col sm={10}>
             <Card className="p-3">
-              {/* Assign To (dropdown single select) */}
               <Form.Group className="mb-3">
                 <Form.Label className="fw-semibold">Assign to</Form.Label>
                 <Form.Select defaultValue="Everyone">
@@ -131,24 +128,22 @@ The Kambaz application should include a link to navigate back to the landing pag
                 </Form.Select>
               </Form.Group>
 
-              {/* Due Date */}
               <Form.Group className="mb-3">
                 <Form.Label className="fw-semibold">Due</Form.Label>
                 <Form.Control type="datetime-local" defaultValue={due} />
               </Form.Group>
 
-              {/* Availability Dates */}
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
-                    <Form.Label className="fw-semibold">Available from</Form.Label>
+                    <Form.Label className="fw-semibold">Available From</Form.Label>
                     <Form.Control type="datetime-local" defaultValue={available} />
                   </Form.Group>
                 </Col>
                 <Col md={6}>
                   <Form.Group className="mb-3">
-                    <Form.Label className="fw-semibold" >Until</Form.Label>
-                    <Form.Control type="datetime-local" defaultValue={due}/>
+                    <Form.Label className="fw-semibold">Until</Form.Label>
+                    <Form.Control type="datetime-local" defaultValue={due} />
                   </Form.Group>
                 </Col>
               </Row>
@@ -158,16 +153,10 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Buttons */}
         <div className="d-flex justify-content-end">
-          <Link
-            href={`/Courses/${cid}/Assignments`}
-            className="btn btn-secondary me-2"
-          >
+          <Link href={`/Courses/${cid}/Assignments`} className="btn btn-secondary me-2">
             Cancel
           </Link>
-          <Link
-            href={`/Courses/${cid}/Assignments`}
-            className="btn btn-danger"
-          >
+          <Link href={`/Courses/${cid}/Assignments`} className="btn btn-danger">
             Save
           </Link>
         </div>
