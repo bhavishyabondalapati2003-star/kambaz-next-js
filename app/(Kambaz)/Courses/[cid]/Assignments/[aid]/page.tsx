@@ -6,12 +6,14 @@ import { Form, Row, Col, Card } from "react-bootstrap";
 import * as db from "../../../../Database";
 
 export default function AssignmentEditor() {
-  const { cid, aid } = useParams();
 
-  // Find assignment
-  const assignment = db.assignments.find(
-    (a: any) => a._id === aid && a.course === cid
-  );
+  const { cid, aid } = useParams();
+type Assignment = { _id: string; course: string; title?: string; description?: string };
+const assignment = (db.assignments as Assignment[]).find(
+  (a) => a._id === aid && a.course === cid
+);
+
+
 
   const title = assignment?.title || "A1";
   const description =
