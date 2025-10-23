@@ -6,14 +6,21 @@ import { Form, Row, Col, Card } from "react-bootstrap";
 import * as db from "../../../../Database";
 
 export default function AssignmentEditor() {
-
   const { cid, aid } = useParams();
-type Assignment = { _id: string; course: string; title?: string; description?: string };
-const assignment = (db.assignments as Assignment[]).find(
-  (a) => a._id === aid && a.course === cid
-);
 
+  type Assignment = {
+  _id: string;
+  course: string;
+  title?: string;
+  description?: string;
+  points?: number;
+  due?: string;
+  available?: string;
+};
 
+  const assignment = (db.assignments as Assignment[]).find(
+    (a) => a._id === aid && a.course === cid
+  );
 
   const title = assignment?.title || "A1";
   const description =
@@ -37,34 +44,33 @@ The Kambaz application should include a link to navigate back to the landing pag
   return (
     <Card className="p-4 m-4 shadow-sm">
       <Form>
-        {/* Assignment Name */}
+        {/* Assignment Name (full width, no label on left) */}
         <Form.Group className="mb-3">
-          <Form.Label className="fw-semibold text-start">Assignment Name</Form.Label>
+          <Form.Label className="fw-semibold">Assignment Name</Form.Label>
           <Form.Control defaultValue={title} />
         </Form.Group>
 
-        {/* Description */}
+        {/* Description (no label at all) */}
         <Form.Group className="mb-4">
-          <Form.Label className="fw-semibold text-start"></Form.Label>
           <Form.Control as="textarea" rows={8} defaultValue={description} />
         </Form.Group>
 
         {/* Points */}
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={3} className="fw-semibold text-start">
+          <Form.Label column sm={3} className="fw-semibold">
             Points
           </Form.Label>
-          <Col sm={10}>
+          <Col sm={9}>
             <Form.Control type="number" defaultValue={points} />
           </Col>
         </Form.Group>
 
         {/* Assignment Group */}
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={4} className="fw-semibold text-start">
+          <Form.Label column sm={3} className="fw-semibold">
             Assignment Group
           </Form.Label>
-          <Col sm={10}>
+          <Col sm={9}>
             <Form.Select defaultValue="ASSIGNMENTS">
               <option>ASSIGNMENTS</option>
               <option>QUIZZES</option>
@@ -76,10 +82,10 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Display Grade As */}
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={3} className="fw-semibold text-start">
+          <Form.Label column sm={3} className="fw-semibold">
             Display Grade As
           </Form.Label>
-          <Col sm={10}>
+          <Col sm={9}>
             <Form.Select defaultValue="Percentage">
               <option>Percentage</option>
               <option>Points</option>
@@ -91,10 +97,10 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Submission Type */}
         <Form.Group as={Row} className="mb-4">
-          <Form.Label column sm={4} className="fw-semibold text-start">
+          <Form.Label column sm={3} className="fw-semibold">
             Submission Type
           </Form.Label>
-          <Col sm={10}>
+          <Col sm={9}>
             <Card className="p-3">
               <Form.Group className="mb-3">
                 <Form.Select defaultValue="Online">
@@ -115,10 +121,10 @@ The Kambaz application should include a link to navigate back to the landing pag
 
         {/* Assign Section */}
         <Form.Group as={Row} className="mb-3">
-          <Form.Label column sm={3} className="fw-semibold text-start">
+          <Form.Label column sm={3} className="fw-semibold">
             Assign
           </Form.Label>
-          <Col sm={10}>
+          <Col sm={9}>
             <Card className="p-3">
               <Form.Group className="mb-3">
                 <Form.Label className="fw-semibold">Assign to</Form.Label>
