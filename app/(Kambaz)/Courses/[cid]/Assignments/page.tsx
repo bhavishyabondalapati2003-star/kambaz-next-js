@@ -1,10 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { use } from "react";
-import Link from "next/link";
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useSelector, useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
+import { Modal } from "react-bootstrap";
+import { FaTrash } from "react-icons/fa"; 
+
+
 import {
   FaSearch,
   FaPlus,
@@ -24,9 +29,13 @@ import {
   Row,
   Col,
 } from "react-bootstrap";
-import * as db from "../../../Database"; // ✅ import the real assignments DB
+import { RootState } from "../../../store";
+import {
+  addAssignment,
+  deleteAssignment,
+} from "./reducer";
 
-// ✅ keep the GripDots component identical
+
 function GripDots() {
   return (
     <div
@@ -61,24 +70,60 @@ function GripDots() {
   );
 }
 
-// ✅ Use real data instead of dummyAssignments
 export default function Assignments() {
   const { cid } = useParams();
+  const dispatch = useDispatch();
+  const { assignments } = useSelector(
+    (state: RootState) => state.assignmentsReducer
+  );
+  const { currentUser } = useSelector(
+    (state: RootState) => state.accountReducer
+  );
+
   const [search, setSearch] = useState("");
 
-  // Load all assignments from the JSON DB
-  const assignments = db.assignments.filter(
-    (a: any) => a.course === cid
+  const [showModal, setShowModal] = useState(false);
+const [selectedId, setSelectedId] = useState<string | null>(null);
+
+const handleDeleteClick = (id: string) => {
+  setSelectedId(id);
+  setShowModal(true);
+};
+
+const confirmDelete = () => {
+  if (selectedId) {
+    dispatch(deleteAssignment(selectedId));
+    setShowModal(false);
+    setSelectedId(null);
+  }
+};
+
+
+  
+  const filteredAssignments = assignments.filter(
+    (a: any) =>
+      a.course === cid &&
+      a.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Filter by search term
-  const filtered = assignments.filter((a: any) =>
-    a.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const isFaculty = currentUser?.role === "FACULTY";
+
+  
+const router = useRouter();
+const handleAdd = () => {
+  router.push(`/Courses/${cid}/Assignments/new`);
+};
+
+
+  const handleDelete = (id: string) => {
+    if (confirm("Delete this assignment?")) {
+      dispatch(deleteAssignment(id));
+    }
+  };
 
   return (
-    <div className="p-4" style={{ backgroundColor: "white" }}>
-      {/* 🔍 Search and Buttons */}
+    <div className="p-4 bg-white">
+      
       <Row className="align-items-center mb-3">
         <Col md={6}>
           <InputGroup>
@@ -92,17 +137,21 @@ export default function Assignments() {
             />
           </InputGroup>
         </Col>
-        <Col md={6} className="text-end">
-          <Button variant="light" className="border me-2 text-dark">
-            <FaPlus /> Group
-          </Button>
-          <Button variant="danger">
-            <FaPlus /> Assignment
-          </Button>
-        </Col>
+
+       
+        {isFaculty && (
+          <Col md={6} className="text-end">
+            <Button variant="light" className="border me-2 text-dark">
+              <FaPlus /> Group
+            </Button>
+            <Button variant="danger" onClick={handleAdd}>
+              <FaPlus /> Assignment
+            </Button>
+          </Col>
+        )}
       </Row>
 
-      {/* 📂 Header Section */}
+      
       <div
         className="d-flex align-items-center justify-content-between border px-3 py-2"
         style={{ backgroundColor: "#f5f6f7" }}
@@ -121,11 +170,11 @@ export default function Assignments() {
         </div>
       </div>
 
-      {/* 📋 Assignment List */}
+      
       <ListGroup className="border border-top-0">
-        {filtered.map(({ _id, title }: any) => (
+        {filteredAssignments.map((a: any) => (
           <ListGroup.Item
-            key={_id}
+            key={a._id}
             className="d-flex justify-content-between align-items-center ps-3 pe-2 py-3 rounded-0 bg-white"
             style={{
               borderLeft: "4px solid green",
@@ -134,39 +183,71 @@ export default function Assignments() {
               borderBottom: "1px solid #dee2e6",
             }}
           >
-            {/* Left Section */}
+            
             <div className="d-flex align-items-start w-100">
               <GripDots />
               <MdOutlineAssignment className="me-3 fs-4 text-success" />
               <div className="flex-grow-1">
                 <Link
-                  href={`/Courses/${cid}/Assignments/${_id}`}
+                  href={`/Courses/${cid}/Assignments/${a._id}`}
                   className="fw-bold text-decoration-none text-dark d-block"
                 >
-                  {title}
+                  {a.title}
                 </Link>
 
-                {/* keep the same subtext and icons */}
                 <div className="text-muted small mt-1">
                   Multiple Modules &nbsp;|&nbsp;
                   <FaClock className="me-1 text-secondary" />
-                  <strong>Not available until</strong> May 6 at 12:00am &nbsp;|&nbsp;
+                  <strong>Available</strong> {new Date(a.available).toDateString()} &nbsp;|&nbsp;
                   <FaCalendarAlt className="me-1 text-secondary" />
-                  <strong>Due</strong> May 13 at 11:59pm &nbsp;|&nbsp;
+                  <strong>Due</strong> {new Date(a.due).toDateString()} &nbsp;|&nbsp;
                   <FaStar className="me-1 text-secondary" />
-                  100 pts
+                  {a.points} pts
                 </div>
               </div>
             </div>
 
-            {/* Right Icons */}
+           
             <div className="d-flex align-items-center">
               <FaCheckCircle className="text-success me-3" size={18} />
-              <FaEllipsisV className="text-secondary" />
+              {isFaculty && (
+  <FaTrash
+    className="text-danger"
+    style={{ cursor: "pointer" }}
+    onClick={() => handleDeleteClick(a._id)}
+  />
+)}
+
+              {!isFaculty && <FaEllipsisV className="text-secondary" />}
             </div>
           </ListGroup.Item>
         ))}
+
+       
+        {filteredAssignments.length === 0 && (
+          <div className="text-center text-muted py-5">
+            No assignments found.
+          </div>
+        )}
       </ListGroup>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+  <Modal.Header closeButton>
+    <Modal.Title>Delete Assignment</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    Are you sure you want to delete this assignment? This action cannot be undone.
+  </Modal.Body>
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setShowModal(false)}>
+      Cancel
+    </Button>
+    <Button variant="danger" onClick={confirmDelete}>
+      Delete
+    </Button>
+  </Modal.Footer>
+</Modal>
+
     </div>
   );
 }

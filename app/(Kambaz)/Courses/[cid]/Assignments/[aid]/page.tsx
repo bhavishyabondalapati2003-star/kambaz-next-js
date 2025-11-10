@@ -1,23 +1,38 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Form, Row, Col, Card } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { Form, Row, Col, Card, Button } from "react-bootstrap";
+import { v4 as uuidv4 } from "uuid";
+
+
+import { RootState } from "../../../../store";
+import { addAssignment, updateAssignment } from "../reducer";
 import * as db from "../../../../Database";
 
-export default function AssignmentEditor() {
-  const { cid, aid } = useParams();
+type Assignment = {
+  _id: string;
+  course: string;
+  title: string;
+  description: string;
+  points: number;
+  due: string;       
+  available: string;  
+  until?: string;    
+};
 
-  // Get assignment data dynamically
-  const assignment = db.assignments.find(
-    (a: any) => a._id === aid && a.course === cid  // eslint-disable-line @typescript-eslint/no-explicit-any
-  );
+function toLocalISO(dt: string | Date) {
+ 
+  const d = typeof dt === "string" ? new Date(dt) : dt;
+  const pad = (n: number) => `${n}`.padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
-  const title = assignment?.title || "A1";
-  const description =
-    assignment?.description || 
-    `The assignment is available online.
+
+const DEFAULT_DESCRIPTION = `The assignment is available online.
 
 Submit a link to the landing page of your Web application running on Netlify.
 
@@ -28,41 +43,139 @@ The landing page should include the following:
 • Links to all relevant source code repositories
 
 The Kambaz application should include a link to navigate back to the landing page.`;
-  const points = assignment?.points || 100;
-  const due = assignment?.due || "2024-05-13T23:59";
-  const available = assignment?.available || "2024-05-06T00:00";
+
+export default function AssignmentEditor() {
+  const { cid, aid } = useParams<{ cid: string; aid: string }>();
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  const { assignments } = useSelector(
+    (state: RootState) => state.assignmentsReducer
+  );
+  const { currentUser } = useSelector(
+    (state: RootState) => state.accountReducer
+  );
+
+  const isFaculty = currentUser?.role === "FACULTY";
+  const editing = aid !== "new";
+
+  
+  const existing =
+    assignments.find((a: any) => a._id === aid && a.course === cid) ??
+    (db.assignments as any[]).find((a) => a._id === aid && a.course === cid);
+
+  const initial: Assignment = useMemo(() => {
+  
+  if (editing && existing) {
+    return {
+      _id: existing._id,
+      course: existing.course,
+      title: existing.title ?? "",
+      description: existing.description ?? "",
+      points: existing.points ?? 0,
+      due: toLocalISO(existing.due ?? new Date()),
+      available: toLocalISO(existing.available ?? new Date()),
+      until: toLocalISO(existing.until ?? existing.due ?? new Date()),
+    };
+  }
+
+  
+  return {
+    _id: uuidv4(),
+    course: String(cid),
+    title: "",
+    description: "",
+    points: 0,
+    available: "",
+    due: "",
+    until: "",
+  };
+}, [editing, existing, cid]);
+
+
+  const [form, setForm] = useState<Assignment>(initial);
+
+  
+  useEffect(() => {
+    setForm(initial);
+  }, [initial]);
+
+  const onChange =
+    (name: keyof Assignment) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      const val = name === "points" ? Number(e.target.value) : e.target.value;
+      setForm((f) => ({ ...f, [name]: val as any }));
+    };
+
+  const onSave = () => {
+    if (!isFaculty) return; 
+    const payload = {
+      ...form,
+      
+      course: String(cid),
+    };
+    if (editing) {
+      dispatch(updateAssignment(payload));
+    } else {
+      dispatch(addAssignment(payload));
+    }
+    router.push(`/Courses/${cid}/Assignments`);
+  };
+
+  const onCancel = () => {
+    router.push(`/Courses/${cid}/Assignments`);
+  };
+
+  
+  const ro = !isFaculty; 
+  const disable = !isFaculty;
 
   return (
     <Card className="p-4 m-4 shadow-sm">
       <Form>
-        {/* Assignment Name */}
+        
         <Form.Group className="mb-3">
           <Form.Label className="fw-semibold">Assignment Name</Form.Label>
-          <Form.Control defaultValue={title} />
+          <Form.Control
+            value={form.title}
+            onChange={onChange("title")}
+            readOnly={ro}
+          />
         </Form.Group>
 
-        {/* Description */}
+        
         <Form.Group className="mb-4">
-          <Form.Control as="textarea" rows={8} defaultValue={description} />
+          <Form.Control
+            as="textarea"
+            rows={8}
+            value={form.description}
+            onChange={onChange("description")}
+            readOnly={ro}
+          />
         </Form.Group>
 
-        {/* Points */}
+        
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={2} className="fw-semibold">
+          <Form.Label column sm={3} className="fw-semibold">
             Points
           </Form.Label>
-          <Col sm={10}>
-            <Form.Control type="number" defaultValue={points} />
+          <Col sm={9}>
+            <Form.Control
+              type="number"
+              value={form.points}
+              onChange={onChange("points")}
+              readOnly={ro}
+            />
           </Col>
         </Form.Group>
 
-        {/* Assignment Group */}
+       
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={2} className="fw-semibold">
+          <Form.Label column sm={3} className="fw-semibold">
             Assignment Group
           </Form.Label>
-          <Col sm={10}>
-            <Form.Select defaultValue="ASSIGNMENTS">
+          <Col sm={9}>
+            <Form.Select defaultValue="ASSIGNMENTS" disabled={disable}>
               <option>ASSIGNMENTS</option>
               <option>QUIZZES</option>
               <option>PROJECTS</option>
@@ -71,13 +184,13 @@ The Kambaz application should include a link to navigate back to the landing pag
           </Col>
         </Form.Group>
 
-        {/* Display Grade As */}
+       
         <Form.Group as={Row} className="mb-3 align-items-center">
-          <Form.Label column sm={2} className="fw-semibold">
-            Display Grade as
+          <Form.Label column sm={3} className="fw-semibold">
+            Display Grade As
           </Form.Label>
-          <Col sm={10}>
-            <Form.Select defaultValue="Percentage">
+          <Col sm={9}>
+            <Form.Select defaultValue="Percentage" disabled={disable}>
               <option>Percentage</option>
               <option>Points</option>
               <option>Letter Grade</option>
@@ -86,44 +199,40 @@ The Kambaz application should include a link to navigate back to the landing pag
           </Col>
         </Form.Group>
 
-        {/* Submission Type */}
+        
         <Form.Group as={Row} className="mb-4">
-          <Form.Label column sm={2} className="fw-semibold">
+          <Form.Label column sm={3} className="fw-semibold">
             Submission Type
           </Form.Label>
-          <Col sm={10}>
+          <Col sm={9}>
             <Card className="p-3">
-              {/* Dropdown only */}
               <Form.Group className="mb-3">
-                <Form.Select defaultValue="Online">
+                <Form.Select defaultValue="Online" disabled={disable}>
                   <option>Online</option>
                   <option>On Paper</option>
                   <option>No Submission</option>
                 </Form.Select>
               </Form.Group>
-
-              {/* Always show these options like Canvas */}
               <div className="fw-semibold mb-2">Online Entry Options</div>
-              <Form.Check type="checkbox" label="Text Entry" />
-              <Form.Check type="checkbox" label="Website URL" defaultChecked />
-              <Form.Check type="checkbox" label="Media Recordings" />
-              <Form.Check type="checkbox" label="Student Annotation" />
-              <Form.Check type="checkbox" label="File Uploads" />
+              <Form.Check type="checkbox" label="Text Entry" disabled={disable} />
+              <Form.Check type="checkbox" label="Website URL" defaultChecked disabled={disable} />
+              <Form.Check type="checkbox" label="Media Recordings" disabled={disable} />
+              <Form.Check type="checkbox" label="Student Annotation" disabled={disable} />
+              <Form.Check type="checkbox" label="File Uploads" disabled={disable} />
             </Card>
           </Col>
         </Form.Group>
 
-        {/* Assign Section */}
+        
         <Form.Group as={Row} className="mb-3">
-          <Form.Label column sm={2} className="fw-semibold">
+          <Form.Label column sm={3} className="fw-semibold">
             Assign
           </Form.Label>
-          <Col sm={10}>
+          <Col sm={9}>
             <Card className="p-3">
-              {/* Assign To (dropdown single select) */}
               <Form.Group className="mb-3">
                 <Form.Label className="fw-semibold">Assign to</Form.Label>
-                <Form.Select defaultValue="Everyone">
+                <Form.Select defaultValue="Everyone" disabled={disable}>
                   <option>Everyone</option>
                   <option>All Students</option>
                   <option>Group 1</option>
@@ -131,24 +240,37 @@ The Kambaz application should include a link to navigate back to the landing pag
                 </Form.Select>
               </Form.Group>
 
-              {/* Due Date */}
               <Form.Group className="mb-3">
                 <Form.Label className="fw-semibold">Due</Form.Label>
-                <Form.Control type="datetime-local" defaultValue={due} />
+                <Form.Control
+                  type="datetime-local"
+                  value={form.due}
+                  onChange={onChange("due")}
+                  readOnly={ro}
+                />
               </Form.Group>
 
-              {/* Availability Dates */}
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
-                    <Form.Label className="fw-semibold">Available from</Form.Label>
-                    <Form.Control type="datetime-local" defaultValue={available} />
+                    <Form.Label className="fw-semibold">Available From</Form.Label>
+                    <Form.Control
+                      type="datetime-local"
+                      value={form.available}
+                      onChange={onChange("available")}
+                      readOnly={ro}
+                    />
                   </Form.Group>
                 </Col>
                 <Col md={6}>
                   <Form.Group className="mb-3">
-                    <Form.Label className="fw-semibold" >Until</Form.Label>
-                    <Form.Control type="datetime-local" defaultValue={due}/>
+                    <Form.Label className="fw-semibold">Until</Form.Label>
+                    <Form.Control
+                      type="datetime-local"
+                      value={form.until ?? form.due}
+                      onChange={onChange("until")}
+                      readOnly={ro}
+                    />
                   </Form.Group>
                 </Col>
               </Row>
@@ -156,20 +278,20 @@ The Kambaz application should include a link to navigate back to the landing pag
           </Col>
         </Form.Group>
 
-        {/* Buttons */}
+        
         <div className="d-flex justify-content-end">
-          <Link
-            href={`/Courses/${cid}/Assignments`}
-            className="btn btn-secondary me-2"
-          >
+          <Button variant="secondary" className="me-2" onClick={onCancel}>
             Cancel
-          </Link>
-          <Link
-            href={`/Courses/${cid}/Assignments`}
-            className="btn btn-danger"
-          >
-            Save
-          </Link>
+          </Button>
+          {isFaculty ? (
+            <Button variant="danger" onClick={onSave}>
+              Save
+            </Button>
+          ) : (
+            <Link href={`/Courses/${cid}/Assignments`} className="btn btn-outline-secondary">
+              Back
+            </Link>
+          )}
         </div>
       </Form>
     </Card>

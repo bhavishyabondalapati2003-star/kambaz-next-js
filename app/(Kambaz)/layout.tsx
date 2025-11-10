@@ -3,21 +3,25 @@
 import { ReactNode } from "react";
 import KambazNavigation from "./Navigation";
 import "./styles.css";
+import { Provider } from "react-redux";
+import store from "./store";
 
 export default function KambazLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <div id="wd-kambaz" className="d-flex">
-      {/* Sidebar */}
-      <div style={{ width: "0px" }}>
-        <KambazNavigation />
-      </div>
+    <Provider store={store}>
+      <div id="wd-kambaz" className="d-flex">
+        
+        <div style={{ width: "0px" }}>
+          <KambazNavigation />
+        </div>
 
-      {/* Main content */}
-      <div className="wd-main-content-offset p-3 flex-fill">
-        {children}
+        
+        <div className="wd-main-content-offset p-3 flex-fill">
+          {children}
+        </div>
       </div>
-    </div>
+    </Provider>
   );
 }
