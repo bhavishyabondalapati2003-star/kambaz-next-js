@@ -1,26 +1,46 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
-import { ListGroup, ListGroupItem } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { ListGroup, ListGroupItem, FormControl } from "react-bootstrap";
 import { BsGripVertical } from "react-icons/bs";
-import * as db from "../../../Database";
 import ModulesControls from "./ModulesControls";
 import ModuleControlButtons from "./ModuleControlButtons";
 import LessonControlButtons from "./LessonControlButtons";
+import { addModule, deleteModule, updateModule, editModule } from "./reducer";
+import { RootState } from "../../../store";
 
 export default function Modules() {
-  const { cid } = useParams(); 
-  const modules = db.modules;
+  const { cid } = useParams();
+  const courseId = cid as string;
 
-  const filteredModules = modules.filter((module: any) => module.course === cid);
+  const dispatch = useDispatch();
+  const { modules } = useSelector((state: RootState) => state.modulesReducer);
+  const { currentUser } = useSelector((state: RootState) => state.accountReducer);
+  const [moduleName, setModuleName] = useState("");
+
+  const isFaculty = currentUser?.role === "FACULTY";
+
+  const filteredModules = modules.filter((m: any) => m.course === courseId);
 
   return (
-    <div>
-      <ModulesControls />
-      <br /><br /><br /><br />
+    <div id="wd-modules">
+      
+      {isFaculty && (
+        <ModulesControls
+          moduleName={moduleName}
+          setModuleName={setModuleName}
+          addModule={() => {
+            dispatch(addModule({ name: moduleName, course: courseId }));
+            setModuleName("");
+          }}
+        />
+      )}
 
-      <ListGroup className="rounded-0" id="wd-modules">
+      <br />
+      <ListGroup id="wd-modules" className="rounded-0">
         {filteredModules.map((module: any) => (
           <ListGroupItem
             key={module._id}
@@ -28,10 +48,41 @@ export default function Modules() {
           >
             <div className="wd-title p-3 ps-2 bg-secondary">
               <BsGripVertical className="me-2 fs-3" />
-              {module.name}
-              <ModuleControlButtons />
+
+              
+              {!module.editing && module.name}
+              {module.editing && isFaculty && (
+                <FormControl
+                  className="w-50 d-inline-block"
+                  defaultValue={module.name}
+                  onChange={(e) =>
+                    dispatch(updateModule({ ...module, name: e.target.value }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      dispatch(updateModule({ ...module, editing: false }));
+                    }
+                  }}
+                />
+              )}
+
+              
+              <div className="float-end">
+                
+                {isFaculty ? (
+                  <ModuleControlButtons
+                    moduleId={module._id}
+                    deleteModule={(id) => dispatch(deleteModule(id))}
+                    editModule={(id) => dispatch(editModule(id))}
+                  />
+                ) : (
+                  
+                  <LessonControlButtons />
+                )}
+              </div>
             </div>
 
+           
             {module.lessons && module.lessons.length > 0 && (
               <ListGroup className="wd-lessons rounded-0">
                 {module.lessons.map((lesson: any) => (
@@ -41,7 +92,10 @@ export default function Modules() {
                   >
                     <BsGripVertical className="me-2 fs-3" />
                     {lesson.name}
-                    <LessonControlButtons />
+                    
+                    <div className="float-end">
+                      <LessonControlButtons />
+                    </div>
                   </ListGroupItem>
                 ))}
               </ListGroup>
