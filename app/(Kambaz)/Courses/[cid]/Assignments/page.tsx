@@ -162,12 +162,13 @@ const handleAdd = () => {
           ASSIGNMENTS
         </div>
         <div className="d-flex align-items-center">
-          <span className="border rounded-pill px-3 py-1 small text-muted me-3 bg-light">
-            40% of Total
-          </span>
-          <FaPlus className="text-secondary me-3" />
-          <FaEllipsisV className="text-secondary" />
-        </div>
+  <span className="border rounded-pill px-3 py-1 small text-muted me-3 bg-light">
+    40% of Total
+  </span>
+  {isFaculty && <FaPlus className="text-secondary me-3" />} 
+  <FaEllipsisV className="text-secondary" />
+</div>
+
       </div>
 
       
