@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { addNewCourse, deleteCourse, updateCourse } from "../Courses/reducer";
-import { enrollCourse, unenrollCourse } from "../Account/reducer";
+import * as client from "../Courses/client";
+import { setCourses } from "../Courses/reducer";
+import { enrollCourse, unenrollCourse, setCurrentUser } from "../Account/reducer";
 import { RootState } from "../store";
 import {
   Row,
@@ -50,35 +51,25 @@ export default function Dashboard() {
     description: "New Description",
   });
 
-  useEffect(() => {
-    if (!currentUser) router.replace("/Account/Signin");
-  }, [currentUser, router]);
+  const fetchCourses = async () => {
+  if (!currentUser) return;  // ✅ Add null check
+  
+  try {
+    let courses;
+    if (currentUser.role === "FACULTY" || showAll) {
+      courses = await client.fetchAllCourses();
+    } else {
+      courses = await client.findMyCourses();
+    }
+    dispatch(setCourses(courses));
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-  if (!currentUser) return null;
-
-  const isFaculty = currentUser.role === "FACULTY";
-  const enrolledIds = currentUser.enrolledCourses || [];
-
-  // Faculty sees all courses, students/TAs see enrolled only
-  const visibleCourses = isFaculty
-    ? courses
-    : showAll
-    ? courses
-    : courses.filter((c: Course) => enrolledIds.includes(c._id));
-
-  const toggleEnroll = (courseId: string, isEnrolled: boolean) => {
-    if (isEnrolled) dispatch(unenrollCourse(courseId));
-    else dispatch(enrollCourse(courseId));
-  };
-
-  const handleAddCourse = () => {
-    const newCourse = {
-      ...course,
-      _id: `${Date.now()}`,
-    };
-    dispatch(addNewCourse(newCourse));
-
-    // Faculty are not enrolled
+  const onAddNewCourse = async () => {
+    const newCourse = await client.createCourse(course);
+    dispatch(setCourses([...courses, newCourse]));
     setCourse({
       _id: "0",
       name: "New Course",
@@ -90,13 +81,60 @@ export default function Dashboard() {
     });
   };
 
+  const onDeleteCourse = async (courseId: string) => {
+    await client.deleteCourse(courseId);
+    dispatch(setCourses(courses.filter((course) => course._id !== courseId)));
+  };
+
+  const onUpdateCourse = async () => {
+    await client.updateCourse(course);
+    dispatch(setCourses(courses.map((c) => {
+      if (c._id === course._id) { 
+        return course; 
+      } else { 
+        return c; 
+      }
+    })));
+  };
+
+  useEffect(() => {
+    if (!currentUser) {
+      router.replace("/Account/Signin");
+    } else {
+      fetchCourses();
+    }
+  }, [currentUser, showAll]);
+
+  if (!currentUser) return null;
+
+  const isFaculty = currentUser.role === "FACULTY";
+  const enrolledIds = currentUser.enrolledCourses || [];
+
+  const visibleCourses = isFaculty
+    ? courses
+    : showAll
+    ? courses
+    : courses.filter((c: Course) => enrolledIds.includes(c._id));
+
+  const toggleEnroll = async (courseId: string, isEnrolled: boolean) => {
+  try {
+    if (isEnrolled) {
+      const updatedUser = await client.unenrollFromCourse(courseId);
+      dispatch(setCurrentUser(updatedUser));
+    } else {
+      const updatedUser = await client.enrollInCourse(courseId);
+      dispatch(setCurrentUser(updatedUser));
+    }
+  } catch (error) {
+    console.error("Error toggling enrollment:", error);
+  }
+};
+
   return (
     <div id="wd-dashboard" className="p-4">
-      {/* ---------- Header ---------- */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 id="wd-dashboard-title">Dashboard</h1>
 
-        {/* Only show toggle for Students/TAs */}
         {!isFaculty && (
           <Button
             variant="primary"
@@ -109,7 +147,6 @@ export default function Dashboard() {
       </div>
       <hr />
 
-      {/* ---------- Faculty Course Management ---------- */}
       {isFaculty && (
         <>
           <h5>
@@ -118,7 +155,7 @@ export default function Dashboard() {
               className="float-end"
               variant="primary"
               id="wd-add-new-course-click"
-              onClick={handleAddCourse}
+              onClick={onAddNewCourse}
             >
               Add
             </Button>
@@ -126,7 +163,7 @@ export default function Dashboard() {
               className="float-end me-2"
               variant="warning"
               id="wd-update-course-click"
-              onClick={() => dispatch(updateCourse(course))}
+              onClick={onUpdateCourse}
             >
               Update
             </Button>
@@ -151,7 +188,6 @@ export default function Dashboard() {
         </>
       )}
 
-      {/* ---------- Course Cards ---------- */}
       <h2 id="wd-dashboard-published">
         {isFaculty
           ? "All Courses"
@@ -195,7 +231,6 @@ export default function Dashboard() {
                       {c.description || c.term}
                     </CardText>
 
-                    {/* Always show Go button */}
                     <div className="d-flex justify-content-between align-items-center">
                       <Link
                         href={`/Courses/${c._id}/Home`}
@@ -204,7 +239,6 @@ export default function Dashboard() {
                         Go
                       </Link>
 
-                      {/* Only Students/TAs see Enroll/Unenroll */}
                       {!isFaculty &&
                         (isEnrolled ? (
                           <Button
@@ -225,7 +259,6 @@ export default function Dashboard() {
                         ))}
                     </div>
 
-                    {/* Faculty edit/delete tools */}
                     {isFaculty && (
                       <div className="mt-3 text-end">
                         <Button
@@ -241,7 +274,10 @@ export default function Dashboard() {
                           id="wd-delete-course-click"
                           variant="danger"
                           size="sm"
-                          onClick={() => dispatch(deleteCourse(c._id))}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            onDeleteCourse(c._id);
+                          }}
                         >
                           Delete
                         </Button>
