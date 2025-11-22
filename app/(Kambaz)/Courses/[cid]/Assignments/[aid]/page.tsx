@@ -8,10 +8,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { Form, Row, Col, Card, Button } from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid";
 
-
 import { RootState } from "../../../../store";
 import { addAssignment, updateAssignment } from "../reducer";
-import * as db from "../../../../Database";
+import * as client from "../../../client";
 
 type Assignment = {
   _id: string;
@@ -19,28 +18,26 @@ type Assignment = {
   title: string;
   description: string;
   points: number;
-  due: string;       
-  available: string;  
-  until?: string;    
+  due: string;
+  available: string;
+  until?: string;
 };
 
 function toLocalISO(dt: string | Date) {
- 
   const d = typeof dt === "string" ? new Date(dt) : dt;
   const pad = (n: number) => `${n}`.padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
 
 const DEFAULT_DESCRIPTION = `The assignment is available online.
 
 Submit a link to the landing page of your Web application running on Netlify.
 
 The landing page should include the following:
-• Your full name and section
-• Links to each of the lab assignments
-• Link to the Kambaz application
-• Links to all relevant source code repositories
+- Your full name and section
+- Links to each of the lab assignments
+- Link to the Kambaz application
+- Links to all relevant source code repositories
 
 The Kambaz application should include a link to navigate back to the landing page.`;
 
@@ -59,43 +56,41 @@ export default function AssignmentEditor() {
   const isFaculty = currentUser?.role === "FACULTY";
   const editing = aid !== "new";
 
-  
-  const existing =
-    assignments.find((a: any) => a._id === aid && a.course === cid) ??
-    (db.assignments as any[]).find((a) => a._id === aid && a.course === cid);
+  const existing = assignments.find((a: any) => a._id === aid && a.course === cid);
 
   const initial: Assignment = useMemo(() => {
-  
   if (editing && existing) {
+    const dueDate = existing.due || new Date();
+    const availableDate = existing.available || new Date();
+    const untilDate = existing.until || existing.due || new Date();
+    
     return {
       _id: existing._id,
       course: existing.course,
       title: existing.title ?? "",
       description: existing.description ?? "",
       points: existing.points ?? 0,
-      due: toLocalISO(existing.due ?? new Date()),
-      available: toLocalISO(existing.available ?? new Date()),
-      until: toLocalISO(existing.until ?? existing.due ?? new Date()),
+      due: toLocalISO(dueDate),
+      available: toLocalISO(availableDate),
+      until: toLocalISO(untilDate),
     };
   }
 
-  
+  const now = new Date();
   return {
     _id: uuidv4(),
     course: String(cid),
     title: "",
     description: "",
-    points: 0,
-    available: "",
-    due: "",
-    until: "",
+    points: 100,
+    available: toLocalISO(now),
+    due: toLocalISO(now),
+    until: toLocalISO(now),
   };
 }, [editing, existing, cid]);
 
-
   const [form, setForm] = useState<Assignment>(initial);
 
-  
   useEffect(() => {
     setForm(initial);
   }, [initial]);
@@ -107,33 +102,40 @@ export default function AssignmentEditor() {
       setForm((f) => ({ ...f, [name]: val as any }));
     };
 
-  const onSave = () => {
-    if (!isFaculty) return; 
+  const onSave = async () => {
+    if (!isFaculty) return;
+    
     const payload = {
       ...form,
-      
       course: String(cid),
     };
-    if (editing) {
-      dispatch(updateAssignment(payload));
-    } else {
-      dispatch(addAssignment(payload));
+
+    try {
+      if (editing) {
+        // Update existing assignment
+        await client.updateAssignment(payload);
+        dispatch(updateAssignment(payload));
+      } else {
+        // Create new assignment
+        const newAssignment = await client.createAssignmentForCourse(String(cid), payload);
+        dispatch(addAssignment(newAssignment));
+      }
+      router.push(`/Courses/${cid}/Assignments`);
+    } catch (error) {
+      console.error("Error saving assignment:", error);
     }
-    router.push(`/Courses/${cid}/Assignments`);
   };
 
   const onCancel = () => {
     router.push(`/Courses/${cid}/Assignments`);
   };
 
-  
-  const ro = !isFaculty; 
+  const ro = !isFaculty;
   const disable = !isFaculty;
 
   return (
     <Card className="p-4 m-4 shadow-sm">
       <Form>
-        
         <Form.Group className="mb-3">
           <Form.Label className="fw-semibold">Assignment Name</Form.Label>
           <Form.Control
@@ -143,7 +145,6 @@ export default function AssignmentEditor() {
           />
         </Form.Group>
 
-        
         <Form.Group className="mb-4">
           <Form.Control
             as="textarea"
@@ -154,7 +155,6 @@ export default function AssignmentEditor() {
           />
         </Form.Group>
 
-        
         <Form.Group as={Row} className="mb-3 align-items-center">
           <Form.Label column sm={3} className="fw-semibold">
             Points
@@ -169,7 +169,6 @@ export default function AssignmentEditor() {
           </Col>
         </Form.Group>
 
-       
         <Form.Group as={Row} className="mb-3 align-items-center">
           <Form.Label column sm={3} className="fw-semibold">
             Assignment Group
@@ -184,7 +183,6 @@ export default function AssignmentEditor() {
           </Col>
         </Form.Group>
 
-       
         <Form.Group as={Row} className="mb-3 align-items-center">
           <Form.Label column sm={3} className="fw-semibold">
             Display Grade As
@@ -199,7 +197,6 @@ export default function AssignmentEditor() {
           </Col>
         </Form.Group>
 
-        
         <Form.Group as={Row} className="mb-4">
           <Form.Label column sm={3} className="fw-semibold">
             Submission Type
@@ -223,7 +220,6 @@ export default function AssignmentEditor() {
           </Col>
         </Form.Group>
 
-        
         <Form.Group as={Row} className="mb-3">
           <Form.Label column sm={3} className="fw-semibold">
             Assign
@@ -278,7 +274,6 @@ export default function AssignmentEditor() {
           </Col>
         </Form.Group>
 
-        
         <div className="d-flex justify-content-end">
           <Button variant="secondary" className="me-2" onClick={onCancel}>
             Cancel
