@@ -1,9 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { FormControl } from "react-bootstrap";
+import { useRouter } from "next/navigation";
+import { setCurrentUser } from "../reducer";
+import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { FormControl, Button } from "react-bootstrap";
+import * as client from "../client";
 
 export default function Signup() {
+  const [user, setUser] = useState<any>({});
+  const dispatch = useDispatch();
+  const router = useRouter();
+  
+  const signup = async () => {
+    const currentUser = await client.signup(user);
+    dispatch(setCurrentUser(currentUser));
+    router.push("/Account/Profile");
+  };
+  
   return (
     <div id="wd-signup-screen" className="p-4">
       <h3 className="mb-3">Signup</h3>
@@ -11,20 +26,24 @@ export default function Signup() {
         id="wd-username"
         placeholder="username"
         className="mb-2"
+        value={user.username || ""}
+        onChange={(e) => setUser({ ...user, username: e.target.value })}
       />
       <FormControl
         id="wd-password"
         placeholder="password"
         type="password"
         className="mb-2"
+        value={user.password || ""}
+        onChange={(e) => setUser({ ...user, password: e.target.value })}
       />
-      <Link
+      <Button
         id="wd-signup-btn"
-        href="/Account/Profile"
+        onClick={signup}
         className="btn btn-primary w-100 mb-2"
       >
         Signup
-      </Link>
+      </Button>
       <div>
         <Link id="wd-signin-link" href="/Account/Signin">
           Signin

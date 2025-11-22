@@ -1,7 +1,5 @@
 "use client";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import * as db from "../Database"; 
-
 
 export type User = {
   _id: string;
@@ -16,15 +14,6 @@ export type User = {
   [key: string]: unknown;
 };
 
-
-type Enrollment = {
-  _id: string;
-  user: string;
-  course: string;
-  role: string;
-};
-
-
 type AccountState = {
   currentUser: User | null;
 };
@@ -33,36 +22,14 @@ const initialState: AccountState = {
   currentUser: null,
 };
 
-
 const accountSlice = createSlice({
   name: "account",
   initialState,
   reducers: {
-    
     setCurrentUser: (state, action: PayloadAction<User | null>) => {
-      const user = action.payload;
-
-      if (user && user.role) {
-        const role = user.role.toUpperCase();
-
-        
-        if (["STUDENT", "FACULTY", "TA"].includes(role)) {
-          const enrollments = db.enrollments as Enrollment[];
-          const enrolled = enrollments
-            .filter((e) => e.user === user._id)
-            .map((e) => e.course);
-
-          user.enrolledCourses = enrolled;
-          console.log(`✅ Enrolled courses for ${user.username}:`, enrolled);
-        } else {
-          console.log("ℹ️ No enrolled courses added — role:", user.role);
-        }
-      }
-
-      state.currentUser = user;
+      state.currentUser = action.payload;
     },
 
-    
     enrollCourse: (state, action: PayloadAction<string>) => {
       if (state.currentUser) {
         const enrolled = state.currentUser.enrolledCourses || [];
@@ -72,7 +39,6 @@ const accountSlice = createSlice({
       }
     },
 
-    
     unenrollCourse: (state, action: PayloadAction<string>) => {
       if (state.currentUser) {
         state.currentUser.enrolledCourses = (

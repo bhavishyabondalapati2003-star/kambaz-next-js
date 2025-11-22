@@ -5,34 +5,21 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
 import { FormControl, Button } from "react-bootstrap";
-import * as db from "../../Database";
+import * as client from "../client";  // ← CHANGE: import client instead of db
 import { setCurrentUser } from "../reducer";
 import type { User } from "../reducer"; 
-
-
 
 export default function Signin() {
   const [credentials, setCredentials] = useState<{ username?: string; password?: string }>({});
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const signin = () => {
-  
-  const users = db.users as unknown as User[];
-
-  const user = users.find(
-    (u) =>
-      u.username === credentials.username &&
-      u.password === credentials.password
-  );
-
-  if (!user) return;
-
-  dispatch(setCurrentUser(user));
-  router.push("/Dashboard");
-};
-
-
+  const signin = async () => {  // ← CHANGE: make it async
+    const user = await client.signin(credentials);  // ← CHANGE: call API
+    if (!user) return;
+    dispatch(setCurrentUser(user));
+    router.push("/Dashboard");
+  };
 
   return (
     <div id="wd-signin-screen" className="p-4">
