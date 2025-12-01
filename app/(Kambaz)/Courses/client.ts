@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 
 const axiosWithCredentials = axios.create({ withCredentials: true });
 
-const HTTP_SERVER = process.env.NEXT_PUBLIC_HTTP_SERVER;
+const HTTP_SERVER = process.env.NEXT_PUBLIC_HTTP_SERVER || "http://localhost:4000";
 const COURSES_API = `${HTTP_SERVER}/api/courses`;
 const USERS_API = `${HTTP_SERVER}/api/users`;
 const MODULES_API = `${HTTP_SERVER}/api/modules`;
@@ -19,17 +20,17 @@ export const findMyCourses = async () => {
 };
 
 export const createCourse = async (course: any) => {
-  const { data } = await axiosWithCredentials.post(`${USERS_API}/current/courses`, course);
+  const { data } = await axiosWithCredentials.post(COURSES_API, course);
   return data;
 };
 
 export const deleteCourse = async (id: string) => {
-  const { data } = await axios.delete(`${COURSES_API}/${id}`);
+  const { data } = await axiosWithCredentials.delete(`${COURSES_API}/${id}`);
   return data;
 };
 
 export const updateCourse = async (course: any) => {
-  const { data } = await axios.put(`${COURSES_API}/${course._id}`, course);
+  const { data } = await axiosWithCredentials.put(`${COURSES_API}/${course._id}`, course);
   return data;
 };
 
@@ -43,14 +44,19 @@ export const createModuleForCourse = async (courseId: string, module: any) => {
   return response.data;
 };
 
-export const deleteModule = async (moduleId: string) => {
-  const response = await axios.delete(`${MODULES_API}/${moduleId}`);
+export const deleteModule = async (courseId: string, moduleId: string) => {
+  const response = await axios.delete(
+    `${COURSES_API}/${courseId}/modules/${moduleId}`
+  );
   return response.data;
 };
 
-export const updateModule = async (module: any) => {
-  const { data } = await axios.put(`${MODULES_API}/${module._id}`, module);
-  return data;
+export const updateModule = async (courseId: string, module: any) => {
+  const response = await axios.put(
+    `${COURSES_API}/${courseId}/modules/${module._id}`,
+    module
+  );
+  return response.data;
 };
 
 export const findAssignmentsForCourse = async (courseId: string) => {
@@ -75,14 +81,14 @@ export const updateAssignment = async (assignment: any) => {
 
 export const enrollInCourse = async (courseId: string) => {
   const { data } = await axiosWithCredentials.post(
-    `${COURSES_API}/${courseId}/enrollments`
+    `${USERS_API}/current/courses/${courseId}`
   );
   return data;
 };
 
 export const unenrollFromCourse = async (courseId: string) => {
   const { data } = await axiosWithCredentials.delete(
-    `${COURSES_API}/${courseId}/enrollments`
+    `${USERS_API}/current/courses/${courseId}`
   );
   return data;
 };

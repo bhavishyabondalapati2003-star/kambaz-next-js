@@ -19,4 +19,3 @@ export default function AccountLayout({ children }: Readonly<{ children: ReactNo
     </div>
   );
 }
-
