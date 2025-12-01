@@ -1,28 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
 import { Table } from "react-bootstrap";
 import { FaUserCircle } from "react-icons/fa";
-import { useParams } from "next/navigation";
-import * as client from "../../../client";
 
-export default function PeopleTable() {
-  const { cid } = useParams();
-  const [users, setUsers] = useState<any[]>([]);
-
-  const fetchUsers = async () => {
-    try {
-      const enrolledUsers = await client.findUsersForCourse(cid as string);
-      setUsers(enrolledUsers);
-    } catch (error) {
-      console.error("Error fetching users:", error);
+export default function PeopleTable({ 
+  users = [], 
+  fetchUsers,
+  onUserClick
+}: { 
+  users?: any[]; 
+  fetchUsers: () => void;
+  onUserClick?: (userId: string) => void;
+}) {
+  const handleUserClick = (userId: string) => {
+    if (onUserClick) {
+      onUserClick(userId);
     }
   };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   return (
     <div id="wd-people-table" className="p-3">
@@ -42,9 +37,15 @@ export default function PeopleTable() {
           {users.map((user: any) => (
             <tr key={user._id}>
               <td className="wd-full-name text-nowrap">
-                <FaUserCircle className="me-2 fs-1 text-secondary" />
-                <span className="wd-first-name">{user.firstName}</span>{" "}
-                <span className="wd-last-name">{user.lastName}</span>
+                <span
+                  className="text-decoration-none"
+                  onClick={() => handleUserClick(user._id)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <FaUserCircle className="me-2 fs-1 text-secondary" />
+                  <span className="wd-first-name">{user.firstName}</span>{" "}
+                  <span className="wd-last-name">{user.lastName}</span>
+                </span>
               </td>
               <td className="wd-login-id">{user.loginId || user.username}</td>
               <td className="wd-section">{user.section || "N/A"}</td>
@@ -64,7 +65,7 @@ export default function PeopleTable() {
           {users.length === 0 && (
             <tr>
               <td colSpan={6} className="text-center text-muted py-4">
-                No enrolled users found.
+                No users found.
               </td>
             </tr>
           )}

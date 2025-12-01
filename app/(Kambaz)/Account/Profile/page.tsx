@@ -15,6 +15,22 @@ export default function Profile() {
   const router = useRouter();
   const { currentUser } = useSelector((state: RootState) => state.accountReducer);
   
+  // LOAD USER FROM BACKEND ON PAGE LOAD
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const user = await client.profile();
+        dispatch(setCurrentUser(user));  // Save to Redux
+        setProfile(user);                 // Fill form
+      } catch (error) {
+        console.error("Not logged in, redirecting...");
+        router.push("/Account/Signin");
+      }
+    };
+    fetchProfile();
+  }, [dispatch, router]);
+  
+  // UPDATE FORM WHEN REDUX CHANGES
   useEffect(() => {
     if (currentUser) {
       setProfile(currentUser);

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import * as client from "../Courses/client";
 import { setCourses } from "../Courses/reducer";
-import { enrollCourse, unenrollCourse, setCurrentUser } from "../Account/reducer";
+import { setCurrentUser } from "../Account/reducer";
 import { RootState } from "../store";
 import {
   Row,
@@ -52,49 +52,57 @@ export default function Dashboard() {
   });
 
   const fetchCourses = async () => {
-  if (!currentUser) return;  // ✅ Add null check
-  
-  try {
-    let courses;
-    if (currentUser.role === "FACULTY" || showAll) {
-      courses = await client.fetchAllCourses();
-    } else {
-      courses = await client.findMyCourses();
+    if (!currentUser) return;
+    
+    try {
+      let courses;
+      if (currentUser.role === "FACULTY" || showAll) {
+        courses = await client.fetchAllCourses();
+      } else {
+        courses = await client.findMyCourses();
+      }
+      dispatch(setCourses(courses));
+    } catch (error) {
+      console.error(error);
     }
-    dispatch(setCourses(courses));
-  } catch (error) {
-    console.error(error);
-  }
-};
+  };
 
   const onAddNewCourse = async () => {
-    const newCourse = await client.createCourse(course);
-    dispatch(setCourses([...courses, newCourse]));
-    setCourse({
-      _id: "0",
-      name: "New Course",
-      number: "CS0000",
-      startDate: "2023-09-10",
-      endDate: "2023-12-15",
-      image: "/images/reactjs.jpg",
-      description: "New Description",
-    });
+    try {
+      const newCourse = await client.createCourse(course);
+      dispatch(setCourses([...courses, newCourse]));
+      setCourse({
+        _id: "0",
+        name: "New Course",
+        number: "CS0000",
+        startDate: "2023-09-10",
+        endDate: "2023-12-15",
+        image: "/images/reactjs.jpg",
+        description: "New Description",
+      });
+    } catch (error) {
+      console.error("Error creating course:", error);
+    }
   };
 
   const onDeleteCourse = async (courseId: string) => {
-    await client.deleteCourse(courseId);
-    dispatch(setCourses(courses.filter((course) => course._id !== courseId)));
+    try {
+      await client.deleteCourse(courseId);
+      dispatch(setCourses(courses.filter((course) => course._id !== courseId)));
+    } catch (error) {
+      console.error("Error deleting course:", error);
+    }
   };
 
   const onUpdateCourse = async () => {
-    await client.updateCourse(course);
-    dispatch(setCourses(courses.map((c) => {
-      if (c._id === course._id) { 
-        return course; 
-      } else { 
-        return c; 
-      }
-    })));
+    try {
+      await client.updateCourse(course);
+      dispatch(setCourses(courses.map((c) => 
+        c._id === course._id ? course : c
+      )));
+    } catch (error) {
+      console.error("Error updating course:", error);
+    }
   };
 
   useEffect(() => {
@@ -117,18 +125,18 @@ export default function Dashboard() {
     : courses.filter((c: Course) => enrolledIds.includes(c._id));
 
   const toggleEnroll = async (courseId: string, isEnrolled: boolean) => {
-  try {
-    if (isEnrolled) {
-      const updatedUser = await client.unenrollFromCourse(courseId);
+    try {
+      let updatedUser;
+      if (isEnrolled) {
+        updatedUser = await client.unenrollFromCourse(courseId);
+      } else {
+        updatedUser = await client.enrollInCourse(courseId);
+      }
       dispatch(setCurrentUser(updatedUser));
-    } else {
-      const updatedUser = await client.enrollInCourse(courseId);
-      dispatch(setCurrentUser(updatedUser));
+    } catch (error) {
+      console.error("Error toggling enrollment:", error);
     }
-  } catch (error) {
-    console.error("Error toggling enrollment:", error);
-  }
-};
+  };
 
   return (
     <div id="wd-dashboard" className="p-4">
