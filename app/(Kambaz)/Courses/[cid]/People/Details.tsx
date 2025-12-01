@@ -12,7 +12,7 @@ export default function PeopleDetails({
   onClose 
 }: { 
   uid: string | null; 
-  onClose: () => void; 
+  onClose: () => void;  //yo
 }) {
   const [user, setUser] = useState<any>({});
   const [name, setName] = useState("");
